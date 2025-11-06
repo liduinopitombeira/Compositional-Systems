@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador de Paradigma Arquetípico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .category {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .category h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .option {
+            background: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        .option:hover {
+            background: #d6eaf8;
+        }
+        .option.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        button {
+            padding: 12px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #27ae60;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+            font-size: 18px;
+            line-height: 1.5;
+            background: #f8f9fa;
+            border-left: 5px solid #3498db;
+            color: #333;
+        }
+        .system {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        .proto {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        .sub-options {
+            margin-left: 20px;
+            margin-top: 10px;
+            padding-left: 15px;
+            border-left: 2px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <h1>Classificador de Paradigma Arquetípico</h1>
+    <p>Selecione as características do paradigma:</p>
+    
+    <div id="categories-container">
+        <!-- Categorias serão geradas dinamicamente -->
+    </div>
+    
+    <button id="classificar">Classificar Paradigma</button>
+    <div id="result"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuração das categorias e opções
+            const categoriesConfig = [
+                {
+                    id: 'ordem',
+                    title: '1. Ordem',
+                    options: [
+                        { id: 'ordenado', label: '1.1 Ordenado', display: 'ordenado' },
+                        { id: 'desordenado', label: '1.2 Desordenado', display: 'desordenado' }
+                    ]
+                },
+                {
+                    id: 'valor-inicial',
+                    title: '2. Valor inicial',
+                    options: [
+                        { id: 'determinado', label: '2.1 Determinado', display: 'com valor inicial determinado' },
+                        { id: 'indeterminado', label: '2.2 Indeterminado', display: 'com valor inicial indeterminado' }
+                    ]
+                },
+                {
+                    id: 'periodicidade',
+                    title: '3. Periodicidade',
+                    options: [
+                        { id: 'monoperiodico', label: '3.1 Monoperiódico', display: 'monoperiódico' },
+                        { id: 'multi-periodico', label: '3.2 Multi-periódico', display: 'multi-periódico' }
+                    ]
+                },
+                {
+                    id: 'natureza',
+                    title: '4. Natureza',
+                    options: [
+                        { id: 'original', label: '4.1 Original', display: 'original' },
+                        { id: 'modelado', label: '4.2 Modelado', display: 'modelado' }
+                    ]
+                },
+                {
+                    id: 'arquitetura',
+                    title: '5. Arquitetura',
+                    options: [
+                        { id: 'aberto', label: '5.1 Aberto', display: 'aberto' },
+                        { id: 'semi-aberto', label: '5.2 Semi-aberto', display: 'semi-aberto' },
+                        { id: 'retroalimentado', label: '5.3 Retroalimentado', display: 'retroalimentado' }
+                    ]
+                },
+                {
+                    id: 'estabilidade',
+                    title: '6. Estabilidade',
+                    options: [
+                        { id: 'estatico', label: '6.1 Estático', display: 'estático' },
+                        { id: 'dinamico', label: '6.2 Dinâmico', display: 'dinâmico' }
+                    ]
+                },
+                {
+                    id: 'tipo-dado',
+                    title: '7. Tipo de dado',
+                    options: [
+                        { id: 'discreto', label: '7.1 Discreto', display: 'discreto' },
+                        { id: 'continuo', label: '7.2 Contínuo', display: 'contínuo' }
+                    ]
+                },
+                {
+                    id: 'relacoes',
+                    title: '8. Relações',
+                    options: [
+                        { id: 'especifica', label: '8.1 Específica', display: 'específica' },
+                        { id: 'generica', label: '8.2 Genérica', display: 'genérica' }
+                    ],
+                    subCategories: {
+                        'especifica': [
+                            {
+                                id: 'cardinalidade-especifica',
+                                title: 'Cardinalidade da relação específica',
+                                options: [
+                                    { id: 'finita', label: '8.1.1 Finita', display: 'finita' },
+                                    { id: 'infinita', label: '8.1.2 Infinita', display: 'infinita' }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: 'escopo-parametrico',
+                    title: '9. Escopo paramétrico',
+                    options: [
+                        { id: 'monoparametrico', label: '9.1 Monoparamétrico', display: 'monoparamétrico' },
+                        { id: 'multi-parametrico', label: '9.2 Multi-paramétrico', display: 'multi-paramétrico' }
+                    ]
+                }
+            ];
+
+            // Mapeamento para plurais
+            const pluralMap = {
+                'especifica': 'específicas',
+                'generica': 'genéricas',
+                'finita': 'finitas',
+                'infinita': 'infinitas'
+            };
+
+            // Gerar a interface dinamicamente
+            const container = document.getElementById('categories-container');
+            
+            function createCategoryElement(category, level = 0) {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category';
+                categoryElement.innerHTML = `<h3>${category.title}</h3>`;
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options';
+                
+                category.options.forEach(option => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option';
+                    optionElement.textContent = option.label;
+                    optionElement.dataset.value = option.id;
+                    optionElement.dataset.category = category.id;
+                    optionElement.dataset.display = option.display;
+                    
+                    optionElement.addEventListener('click', function() {
+                        // Desselecionar outras opções na mesma categoria
+                        document.querySelectorAll(`[data-category="${category.id}"]`).forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        
+                        // Selecionar esta opção
+                        this.classList.add('selected');
+                        
+                        // Esconder subníveis
+                        if (category.subCategories) {
+                            const subCategoryElements = categoryElement.querySelectorAll('.sub-options');
+                            subCategoryElements.forEach(el => el.style.display = 'none');
+                            
+                            // Mostrar subníveis se aplicável
+                            if (category.subCategories[option.id]) {
+                                category.subCategories[option.id].forEach(subCategory => {
+                                    const subElement = categoryElement.querySelector(`[data-subcategory="${subCategory.id}"]`);
+                                    if (subElement) subElement.style.display = 'block';
+                                });
+                            }
+                        }
+                    });
+                    
+                    optionsContainer.appendChild(optionElement);
+                });
+                
+                categoryElement.appendChild(optionsContainer);
+                
+                // Adicionar subcategorias
+                if (category.subCategories) {
+                    for (const optionId in category.subCategories) {
+                        category.subCategories[optionId].forEach(subCategory => {
+                            const subElement = createCategoryElement(subCategory, level + 1);
+                            subElement.className = 'sub-options';
+                            subElement.style.display = 'none';
+                            subElement.dataset.subcategory = subCategory.id;
+                            categoryElement.appendChild(subElement);
+                        });
+                    }
+                }
+                
+                return categoryElement;
+            }
+
+            // Renderizar todas as categorias
+            categoriesConfig.forEach(category => {
+                container.appendChild(createCategoryElement(category));
+            });
+
+            // Função para obter seleções
+            function getSelections() {
+                const selections = {};
+                const displayValues = {};
+                let allSelected = true;
+                
+                function traverseCategories(categories) {
+                    categories.forEach(category => {
+                        const selectedOption = document.querySelector(`[data-category="${category.id}"].selected`);
+                        
+                        if (!selectedOption) {
+                            allSelected = false;
+                            return;
+                        }
+                        
+                        selections[category.id] = selectedOption.dataset.value;
+                        displayValues[category.id] = selectedOption.dataset.display;
+                        
+                        if (category.subCategories && category.subCategories[selectedOption.dataset.value]) {
+                            traverseCategories(category.subCategories[selectedOption.dataset.value]);
+                        }
+                    });
+                }
+                
+                traverseCategories(categoriesConfig);
+                return { selections, displayValues, allSelected };
+            }
+
+            // Classificar paradigma
+            document.getElementById('classificar').addEventListener('click', function() {
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'none';
+                
+                const { selections, displayValues, allSelected } = getSelections();
+                
+                if (!allSelected) {
+                    alert('Por favor, selecione uma opção em cada categoria.');
+                    return;
+                }
+                
+                // Determinar se é sistema composicional
+                let isSistemaComposicional = false;
+                let relationDescription = '';
+                
+                if (selections.relacoes === 'especifica') {
+                    const cardinalidade = selections['cardinalidade-especifica'];
+                    // Sistema Composicional: relações específicas e finitas
+                    if (cardinalidade === 'finita') {
+                        isSistemaComposicional = true;
+                    }
+                    relationDescription = `com relações ${pluralMap.especifica} ${pluralMap[cardinalidade]}`;
+                } else {
+                    relationDescription = `com relações ${pluralMap.generica}`;
+                }
+                
+                // Construir nome completo
+                const systemType = isSistemaComposicional ? 'Sistema Composicional' : 'Proto-rizoma';
+                
+                const descriptionParts = [
+                    systemType,
+                    displayValues.ordem + ',',
+                    displayValues['valor-inicial'] + ',',
+                    displayValues.periodicidade + ',',
+                    displayValues.natureza + ',',
+                    displayValues.arquitetura + ',',
+                    displayValues.estabilidade + ',',
+                    displayValues['tipo-dado'] + ',',
+                    relationDescription,
+                    'e ' + displayValues['escopo-parametrico'] + '.'
+                ];
+                
+                // Juntar todas as partes
+                let description = descriptionParts.join(' ');
+                
+                // Exibir resultado
+                resultDiv.textContent = description;
+                resultDiv.className = isSistemaComposicional ? 'system' : 'proto';
+                resultDiv.style.display = 'block';
+                
+                // Rolagem suave para o resultado
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
